@@ -64,4 +64,66 @@ describe('Social Sequelzie Test', () => {
         expect(foundLikes).toEqual(expect.objectContaining(likes[0]))
     })
 
+    // ====== Associations =======
+    test("ONE TO MANY, users can have only 1 profile", async () => {
+        await sequelize.sync({ force: true }) // reset DB
+
+        let myUser = await User.create(users[0]);
+        let myProfile = await Profile.create(profiles[0]);
+
+        await myUser.setProfile(myProfile);
+
+        const associatedProfile = await myUser.getProfile();
+        expect(associatedProfile instanceof Profile).toBeTruthy();
+    })
+
+    test("one user can make many likes, ONE TO MANY", async function() {
+        await sequelize.sync({ force: true }) // reset DB
+        let myUser = await User.create(users[0]);
+        let myLike1 = await Like.create(likes[0]);
+        let myLike2 = await Like.create(likes[1]);
+
+        await myUser.addLike(myLike1);
+        await myUser.addLike(myLike2);
+
+        const associatedLikes = await myUser.getLikes();
+
+        expect(associatedLikes.length).toBe(2);
+        expect(associatedLikes instanceof Like).toBeTruthy;
+
+    })
+
+    test("Likes can have many users", async () => {
+        await sequelize.sync({ force: true }) // reset db
+
+        let myLike = await Like.create(likes[0]);
+        let user1 = await User.create(users[0]);
+        let user2 = await User.create(users[1]);
+
+        await myLike.addUser(user1);
+        await myLike.addUser(user2);
+
+        const associatedUsers = await myLike.getUsers();
+
+        expect(associatedUsers.length).toBe(2);
+        expect(associatedUsers instanceof User).toBeTruthy;
+    })
+
+    test("User can have many posts, POST belongs to 1 USER", async () => {
+        await sequelize.sync({ force: true });
+
+        let myPost1 = await Post.create(posts[0]);
+        let myPost2 = await Post.create(posts[1]);
+        let myUser = await User.create(users[0]);
+
+        await myUser.addPost(myPost1);
+        await myUser.addPost(myPost2);
+        
+        const associatedPosts = await myUser.getPosts();
+        expect(associatedPosts.length).toBe(2);
+        expect(associatedPosts instanceof Post).toBeTruthy;
+
+    })
+
+
 })
